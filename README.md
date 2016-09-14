@@ -1,15 +1,33 @@
 # nex
-This library aiming to simplify the construction of JSON API service, `nex.Handler`
-wrap a function to `http.Handler`, which unmarshal POST data to struct automatically.
+This library aims to simplify the construction of JSON API service,
+`nex.Handler` is able to wrap any function to adapt the interface of
+`http.Handler`, which unmarshals POST data to a struct automatically.
+
+## Support types
+```
+io.ReadCloser      // request.Body
+http.Header        // request.Header
+nex.Form           // request.Form
+nex.PostFrom       // request.PostFrom
+*url.URL           // request.URL
+*multipart.Form    // request.MultipartForm
+```
 
 ## Usage
+```
+func test(io.ReadCloser, http.Header, nex.Form, nex.PostFrom, *CustomizedRequestType, *url.URL, *multipart.Form) (*CustomizedResponseType, error)
+```
+
+## Example
 ```
 package main
 
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"net/url"
 
 	"github.com/chrislonng/nex"
 )
@@ -35,13 +53,14 @@ func main() {
 	})
 
 	mux := http.NewServeMux()
-	// post request with data
 	mux.Handle("/test1", nex.Handler(test1))
 	mux.Handle("/test2", nex.Handler(test2))
-
-	// get request without data
 	mux.Handle("/test3", nex.Handler(test3))
 	mux.Handle("/test4", nex.Handler(test4))
+	mux.Handle("/test5", nex.Handler(test5))
+	mux.Handle("/test6", nex.Handler(test6))
+	mux.Handle("/test7", nex.Handler(test7))
+	mux.Handle("/test8", nex.Handler(test8))
 
 	http.ListenAndServe(":8080", mux)
 }
@@ -68,6 +87,28 @@ func test4() (*LoginResponse, error) {
 	return nil, errors.New("error test")
 }
 
+func test5(header http.Header) (*LoginResponse, error) {
+	fmt.Printf("%#v\n", header)
+	return &LoginResponse{Result: "success"}, nil
+}
+
+func test6(form nex.Form) (*LoginResponse, error) {
+	fmt.Printf("%#v\n", form)
+	return &LoginResponse{Result: "success"}, nil
+}
+
+func test7(header http.Header, form nex.Form, body io.ReadCloser) (*LoginResponse, error) {
+	fmt.Printf("%#v\n", header)
+	fmt.Printf("%#v\n", form)
+	return &LoginResponse{Result: "success"}, nil
+}
+
+func test8(header http.Header, r *LoginResponse, url *url.URL) (*LoginResponse, error) {
+	fmt.Printf("%#v\n", header)
+	fmt.Printf("%#v\n", r)
+	fmt.Printf("%#v\n", url)
+	return &LoginResponse{Result: "success"}, nil
+}
 ```
 
 ```
@@ -75,6 +116,10 @@ curl -XPOST -d '{"username":"test", "password":"test"}' http://localhost:8080/te
 curl -XPOST -d '{"username":"test", "password":"test"}' http://localhost:8080/test2
 curl  http://localhost:8080/test3
 curl  http://localhost:8080/test4
+curl  http://localhost:8080/test5
+curl  http://localhost:8080/test6\?test\=test
+curl  http://localhost:8080/test7\?test\=tset
+curl -XPOST -d '{"username":"test", "password":"test"}' http://localhost:8080/test8\?test\=test
 ```
 
 ## License

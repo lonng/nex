@@ -22,7 +22,10 @@ var errorEncoder ErrorEncoder
 func fail(w http.ResponseWriter, err error) {
 	errMsg := errorEncoder(err)
 	json.NewEncoder(w).Encode(errMsg)
-	return
+}
+
+func succ(w http.ResponseWriter, data interface{}) {
+	json.NewEncoder(w).Encode(data)
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -43,11 +46,11 @@ func Handler(f interface{}) http.Handler {
 	var num = t.NumIn()
 
 	if num == 0 {
-		adapter = &getRequestAdapter{reflect.ValueOf(f)}
-	} else if num == 1 && t.In(0).Kind() == reflect.Ptr {
-		adapter = &postRequestAdapter{t.In(0), reflect.ValueOf(f)}
+		adapter = &noneParameterAdapter{reflect.ValueOf(f)}
+	} else if num == 1 && !isSupportType(t.In(0)) && t.In(0).Kind() == reflect.Ptr {
+		adapter = &simpleUnmarshalAdapter{t.In(0), reflect.ValueOf(f)}
 	} else {
-		panic("unsupport function type, function should accept one pointer parameter")
+		adapter = makeGenericAdapter(reflect.ValueOf(f))
 	}
 
 	return &handler{adapter}
