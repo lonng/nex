@@ -35,30 +35,46 @@ func main() {
 	})
 
 	mux := http.NewServeMux()
+	// post request with data
 	mux.Handle("/test1", nex.Handler(test1))
 	mux.Handle("/test2", nex.Handler(test2))
+
+	// get request without data
+	mux.Handle("/test3", nex.Handler(test3))
+	mux.Handle("/test4", nex.Handler(test4))
 
 	http.ListenAndServe(":8080", mux)
 }
 
-// regular response
+// POST: regular response
 func test1(m *LoginRequest) (*LoginResponse, error) {
 	fmt.Printf("%+v\n", m)
 	return &LoginResponse{Result: "success"}, nil
 }
 
-// error response
+// POST: error response
 func test2(m *LoginRequest) (*LoginResponse, error) {
 	fmt.Printf("%+v\n", m)
 	return nil, errors.New("error test")
 }
 
+// GET: regular response
+func test3() (*LoginResponse, error) {
+	return &LoginResponse{Result: "success"}, nil
+}
+
+// GET: error response
+func test4() (*LoginResponse, error) {
+	return nil, errors.New("error test")
+}
 
 ```
 
 ```
 curl -XPOST -d '{"username":"test", "password":"test"}' http://localhost:8080/test1
 curl -XPOST -d '{"username":"test", "password":"test"}' http://localhost:8080/test2
+curl  http://localhost:8080/test3
+curl  http://localhost:8080/test4
 ```
 
 ## License

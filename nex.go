@@ -14,8 +14,7 @@ type DefaultErrorMessage struct {
 }
 
 type handler struct {
-	typ    reflect.Type
-	method reflect.Value
+	adapter HandlerAdapter
 }
 
 var errorEncoder ErrorEncoder
@@ -27,20 +26,7 @@ func fail(w http.ResponseWriter, err error) {
 }
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	data := reflect.New(h.typ.In(0).Elem()).Interface()
-	err := json.NewDecoder(r.Body).Decode(data)
-	if err != nil {
-		fail(w, err)
-		return
-	}
-
-	ret := h.method.Call([]reflect.Value{reflect.ValueOf(data)})
-	if err := ret[1].Interface(); err != nil {
-		fail(w, err.(error))
-		return
-	}
-
-	json.NewEncoder(w).Encode(ret[0].Interface())
+	h.adapter.Invoke(w, r)
 }
 
 func Handler(f interface{}) http.Handler {
@@ -49,14 +35,22 @@ func Handler(f interface{}) http.Handler {
 		panic("invalid parameter")
 	}
 
-	if t.NumIn() != 1 || t.In(0).Kind() != reflect.Ptr {
-		panic("unsupport function type, function should accept one pointer parameter")
-	}
-
 	if t.NumOut() != 2 {
 		panic("unsupport function type, function return values should contain response data or error")
 	}
-	return &handler{t, reflect.ValueOf(f)}
+
+	var adapter HandlerAdapter
+	var num = t.NumIn()
+
+	if num == 0 {
+		adapter = &getRequestAdapter{reflect.ValueOf(f)}
+	} else if num == 1 && t.In(0).Kind() == reflect.Ptr {
+		adapter = &postRequestAdapter{t.In(0), reflect.ValueOf(f)}
+	} else {
+		panic("unsupport function type, function should accept one pointer parameter")
+	}
+
+	return &handler{adapter}
 }
 
 func SetErrorEncoder(c ErrorEncoder) {
