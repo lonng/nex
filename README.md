@@ -15,6 +15,8 @@ nex.PostFrom       // request.PostFrom
 
 ## Usage
 ```
+http.Handle("/test", nex.Handler(test))
+
 func test(io.ReadCloser, http.Header, nex.Form, nex.PostFrom, *CustomizedRequestType, *url.URL, *multipart.Form) (*CustomizedResponseType, error)
 ```
 
