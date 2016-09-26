@@ -8,13 +8,15 @@ This library aims to simplify the construction of JSON API service,
 io.ReadCloser      // request.Body
 http.Header        // request.Header
 nex.Form           // request.Form
-nex.PostFrom       // request.PostForm
+nex.PostForm       // request.PostForm
 *url.URL           // request.URL
 *multipart.Form    // request.MultipartForm
 ```
 
 ## Usage
 ```
+http.Handle("/test", nex.Handler(test))
+
 func test(io.ReadCloser, http.Header, nex.Form, nex.PostForm, *CustomizedRequestType, *url.URL, *multipart.Form) (*CustomizedResponseType, error)
 ```
 
