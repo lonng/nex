@@ -8,14 +8,14 @@ This library aims to simplify the construction of JSON API service,
 io.ReadCloser      // request.Body
 http.Header        // request.Header
 nex.Form           // request.Form
-nex.PostFrom       // request.PostFrom
+nex.PostFrom       // request.PostForm
 *url.URL           // request.URL
 *multipart.Form    // request.MultipartForm
 ```
 
 ## Usage
 ```
-func test(io.ReadCloser, http.Header, nex.Form, nex.PostFrom, *CustomizedRequestType, *url.URL, *multipart.Form) (*CustomizedResponseType, error)
+func test(io.ReadCloser, http.Header, nex.Form, nex.PostForm, *CustomizedRequestType, *url.URL, *multipart.Form) (*CustomizedResponseType, error)
 ```
 
 ## Example

@@ -14,7 +14,7 @@ var supportTypes = map[reflect.Type]valuer{
 	reflect.TypeOf((*io.ReadCloser)(nil)).Elem(): bodyValuer,      // request.Body
 	reflect.TypeOf((http.Header)(nil)):           headerValuer,    // request.Header
 	reflect.TypeOf(Form{}):                       formValuer,      // request.Form
-	reflect.TypeOf(PostFrom{}):                   postFromValuer,  // request.PostFrom
+	reflect.TypeOf(PostForm{}):                   postFromValuer,  // request.PostFrom
 	reflect.TypeOf((*url.URL)(nil)):              urlValuer,       // request.URL
 	reflect.TypeOf((*multipart.Form)(nil)):       multipartValuer, // request.MultipartForm
 }
@@ -23,7 +23,7 @@ type Form struct {
 	url.Values
 }
 
-type PostFrom struct {
+type PostForm struct {
 	url.Values
 }
 
@@ -50,7 +50,7 @@ func formValuer(r *http.Request) reflect.Value {
 
 func postFromValuer(r *http.Request) reflect.Value {
 	r.ParseForm()
-	return reflect.ValueOf(PostFrom{r.PostForm})
+	return reflect.ValueOf(PostForm{r.PostForm})
 }
 
 func isSupportType(t reflect.Type) bool {

@@ -65,7 +65,6 @@ func SetErrorEncoder(c ErrorEncoder) {
 
 func init() {
 	errorEncoder = func(err error) interface{} {
-		println(err.Error())
 		return &DefaultErrorMessage{
 			Code:  -1,
 			Error: err.Error(),
