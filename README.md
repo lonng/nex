@@ -9,8 +9,11 @@ io.ReadCloser      // request.Body
 http.Header        // request.Header
 nex.Form           // request.Form
 nex.PostForm       // request.PostForm
+*nex.Form          // request.Form
+*nex.PostForm      // request.PostForm
 *url.URL           // request.URL
 *multipart.Form    // request.MultipartForm
+*http.Request      // raw request
 ```
 
 ## Usage

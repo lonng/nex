@@ -14,6 +14,8 @@ func TestHandler(t *testing.T) {
 	Handler(withHeader)
 	Handler(withForm)
 	Handler(withPostForm)
+	Handler(withFormPtr)
+	Handler(withPostFormPtr)
 	Handler(withMultipartForm)
 	Handler(withUrl)
 	Handler(withRawRequest)
@@ -40,6 +42,14 @@ func withForm(Form) (*testResponse, error) {
 }
 
 func withPostForm(PostForm) (*testResponse, error) {
+	return nil, nil
+}
+
+func withFormPtr(*Form) (*testResponse, error) {
+	return nil, nil
+}
+
+func withPostFormPtr(*PostForm) (*testResponse, error) {
 	return nil, nil
 }
 
