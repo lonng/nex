@@ -63,6 +63,10 @@ func SetErrorEncoder(c ErrorEncoder) {
 	errorEncoder = c
 }
 
+func SetMultipartFormMaxMemery(m int64) {
+	maxMemory = m
+}
+
 func init() {
 	errorEncoder = func(err error) interface{} {
 		return &DefaultErrorMessage{

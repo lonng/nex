@@ -22,6 +22,8 @@ var supportTypes = map[reflect.Type]valuer{
 	reflect.TypeOf((*http.Request)(nil)):         requestValuer,     // raw request
 }
 
+var maxMemory = 2 * 1024 * 1024
+
 type Form struct {
 	url.Values
 }
@@ -43,6 +45,10 @@ func headerValuer(r *http.Request) reflect.Value {
 }
 
 func multipartValuer(r *http.Request) reflect.Value {
+	err := r.ParseMultipartForm(maxMemory)
+	if err != nil {
+		panic(err)
+	}
 	return reflect.ValueOf(r.MultipartForm)
 }
 
