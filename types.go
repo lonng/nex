@@ -22,7 +22,7 @@ var supportTypes = map[reflect.Type]valuer{
 	reflect.TypeOf((*http.Request)(nil)):         requestValuer,     // raw request
 }
 
-var maxMemory = 2 * 1024 * 1024
+var maxMemory = int64(2 * 1024 * 1024)
 
 type Form struct {
 	url.Values
