@@ -3,6 +3,9 @@ This library aims to simplify the construction of JSON API service,
 `nex.Handler` is able to wrap any function to adapt the interface of
 `http.Handler`, which unmarshals POST data to a struct automatically.
 
+## Demo
+[中文示例](https://github.com/chrislonng/yue)
+
 ## Support types
 ```
 io.ReadCloser      // request.Body
