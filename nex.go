@@ -46,9 +46,9 @@ func Handler(f interface{}) http.Handler {
 	var num = t.NumIn()
 
 	if num == 0 {
-		adapter = &noneParameterAdapter{reflect.ValueOf(f)}
+		adapter = &nonParameterAdapter{reflect.ValueOf(f)}
 	} else if num == 1 && !isSupportType(t.In(0)) && t.In(0).Kind() == reflect.Ptr {
-		adapter = &simpleUnmarshalAdapter{t.In(0), reflect.ValueOf(f)}
+		adapter = &simpleUnaryAdapter{t.In(0), reflect.ValueOf(f)}
 	} else {
 		adapter = makeGenericAdapter(reflect.ValueOf(f))
 	}

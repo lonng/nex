@@ -17,12 +17,12 @@ type genericAdapter struct {
 }
 
 // Accept zero parameter adapter
-type noneParameterAdapter struct {
+type nonParameterAdapter struct {
 	method reflect.Value
 }
 
 // Accept only one parameter adapter
-type simpleUnmarshalAdapter struct {
+type simpleUnaryAdapter struct {
 	argType reflect.Type
 	method  reflect.Value
 }
@@ -82,7 +82,7 @@ func (a *genericAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
 	succ(w, ret[0].Interface())
 }
 
-func (a *noneParameterAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
+func (a *nonParameterAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
 	ret := a.method.Call([]reflect.Value{})
 	if err := ret[1].Interface(); err != nil {
 		fail(w, err.(error))
@@ -92,7 +92,7 @@ func (a *noneParameterAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
 	succ(w, ret[0].Interface())
 }
 
-func (a *simpleUnmarshalAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
+func (a *simpleUnaryAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
 	data := reflect.New(a.argType.Elem()).Interface()
 	err := json.NewDecoder(r.Body).Decode(data)
 	if err != nil {
