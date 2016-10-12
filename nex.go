@@ -21,10 +21,12 @@ var errorEncoder ErrorEncoder
 
 func fail(w http.ResponseWriter, err error) {
 	errMsg := errorEncoder(err)
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(errMsg)
 }
 
 func succ(w http.ResponseWriter, data interface{}) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	json.NewEncoder(w).Encode(data)
 }
 
