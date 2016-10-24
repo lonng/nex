@@ -17,7 +17,7 @@ type genericAdapter struct {
 }
 
 // Accept zero parameter adapter
-type nonParameterAdapter struct {
+type simplePlainAdapter struct {
 	method reflect.Value
 }
 
@@ -82,7 +82,7 @@ func (a *genericAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
 	succ(w, ret[0].Interface())
 }
 
-func (a *nonParameterAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
+func (a *simplePlainAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
 	ret := a.method.Call([]reflect.Value{})
 	if err := ret[1].Interface(); err != nil {
 		fail(w, err.(error))
