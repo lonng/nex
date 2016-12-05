@@ -7,7 +7,7 @@ import (
 )
 
 type HandlerAdapter interface {
-	Invoke(http.ResponseWriter, *http.Request)
+	Invoke(http.ResponseWriter, *http.Request) (interface{}, error)
 }
 
 type genericAdapter struct {
@@ -56,7 +56,7 @@ func makeGenericAdapter(method reflect.Value) *genericAdapter {
 	return a
 }
 
-func (a *genericAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
+func (a *genericAdapter) Invoke(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	values := make([]reflect.Value, a.numIn)
 	for i := 0; i < a.numIn; i++ {
 		v, ok := supportTypes[a.types[i]]
@@ -66,8 +66,7 @@ func (a *genericAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
 			d := reflect.New(a.types[i].Elem()).Interface()
 			err := json.NewDecoder(r.Body).Decode(d)
 			if err != nil {
-				fail(w, err)
-				return
+				return nil, err
 			}
 			values[i] = reflect.ValueOf(d)
 		}
@@ -75,36 +74,32 @@ func (a *genericAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
 
 	ret := a.method.Call(values)
 	if err := ret[1].Interface(); err != nil {
-		fail(w, err.(error))
-		return
+		return nil, err.(error)
 	}
 
-	succ(w, ret[0].Interface())
+	return ret[0].Interface(), nil
 }
 
-func (a *simplePlainAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
+func (a *simplePlainAdapter) Invoke(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	ret := a.method.Call([]reflect.Value{})
 	if err := ret[1].Interface(); err != nil {
-		fail(w, err.(error))
-		return
+		return nil, err.(error)
 	}
 
-	succ(w, ret[0].Interface())
+	return ret[0].Interface(), nil
 }
 
-func (a *simpleUnaryAdapter) Invoke(w http.ResponseWriter, r *http.Request) {
+func (a *simpleUnaryAdapter) Invoke(w http.ResponseWriter, r *http.Request) (interface{}, error) {
 	data := reflect.New(a.argType.Elem()).Interface()
 	err := json.NewDecoder(r.Body).Decode(data)
 	if err != nil {
-		fail(w, err)
-		return
+		return nil, err
 	}
 
 	ret := a.method.Call([]reflect.Value{reflect.ValueOf(data)})
 	if err := ret[1].Interface(); err != nil {
-		fail(w, err.(error))
-		return
+		return nil, err.(error)
 	}
 
-	succ(w, ret[0].Interface())
+	return ret[0].Interface(), nil
 }

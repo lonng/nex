@@ -30,7 +30,12 @@ func succ(w http.ResponseWriter, data interface{}) {
 
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	h.adapter.Invoke(w, r)
+	resp, err := h.adapter.Invoke(w, r)
+	if err != nil {
+		fail(w, err)
+	} else {
+		succ(w, resp)
+	}
 }
 
 func Handler(f interface{}) http.Handler {
@@ -40,7 +45,7 @@ func Handler(f interface{}) http.Handler {
 	}
 
 	if t.NumOut() != 2 {
-		panic("unsupport function type, function return values should contain response data or error")
+		panic("unsupport function type, function return values should contain response data & error")
 	}
 
 	var adapter HandlerAdapter
@@ -48,8 +53,10 @@ func Handler(f interface{}) http.Handler {
 
 	if num == 0 {
 		adapter = &simplePlainAdapter{reflect.ValueOf(f)}
+
 	} else if num == 1 && !isSupportType(t.In(0)) && t.In(0).Kind() == reflect.Ptr {
 		adapter = &simpleUnaryAdapter{t.In(0), reflect.ValueOf(f)}
+
 	} else {
 		adapter = makeGenericAdapter(reflect.ValueOf(f))
 	}
@@ -64,7 +71,7 @@ func SetErrorEncoder(c ErrorEncoder) {
 	errorEncoder = c
 }
 
-func SetMultipartFormMaxMemery(m int64) {
+func SetMultipartFormMaxMemory(m int64) {
 	maxMemory = m
 }
 
