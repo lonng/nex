@@ -53,10 +53,8 @@ func Handler(f interface{}) http.Handler {
 
 	if num == 0 {
 		adapter = &simplePlainAdapter{reflect.ValueOf(f)}
-
 	} else if num == 1 && !isSupportType(t.In(0)) && t.In(0).Kind() == reflect.Ptr {
 		adapter = &simpleUnaryAdapter{t.In(0), reflect.ValueOf(f)}
-
 	} else {
 		adapter = makeGenericAdapter(reflect.ValueOf(f))
 	}
