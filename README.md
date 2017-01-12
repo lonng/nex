@@ -8,9 +8,12 @@ This library aims to simplify the construction of JSON API service,
 
 ## Benchmark
 ```
-BenchmarkSimplePlainAdapter_Invoke-8     5000000               350 ns/op              80 B/op          2 allocs/op
-BenchmarkSimpleUnaryAdapter_Invoke-8      500000              2144 ns/op            1296 B/op         16 allocs/op
-BenchmarkGenericAdapter_Invoke-8          500000              2601 ns/op            1456 B/op         17 allocs/op
+BenchmarkSimplePlainAdapter_Invoke-8             5000000               318 ns/op              80 B/op          2 allocs/op
+BenchmarkSimpleUnaryAdapter_Invoke-8             1000000              1999 ns/op            1296 B/op         16 allocs/op
+BenchmarkGenericAdapter_Invoke-8                  500000              2404 ns/op            1456 B/op         17 allocs/op
+BenchmarkSimplePlainAdapter_Invoke2-8            1000000              1724 ns/op            1096 B/op         11 allocs/op
+BenchmarkSimpleUnaryAdapter_Invoke2-8             500000              3484 ns/op            2313 B/op         25 allocs/op
+BenchmarkGenericAdapter_Invoke2-8                 500000              3597 ns/op            2473 B/op         26 allocs/op
 ```
 
 ## Support types
