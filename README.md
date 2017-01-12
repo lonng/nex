@@ -6,6 +6,13 @@ This library aims to simplify the construction of JSON API service,
 ## Demo
 [中文示例](https://github.com/chrislonng/yue)
 
+## Benchmark
+```
+BenchmarkSimplePlainAdapter_Invoke-8     5000000               350 ns/op              80 B/op          2 allocs/op
+BenchmarkSimpleUnaryAdapter_Invoke-8      500000              2144 ns/op            1296 B/op         16 allocs/op
+BenchmarkGenericAdapter_Invoke-8          500000              2601 ns/op            1456 B/op         17 allocs/op
+```
+
 ## Support types
 ```
 io.ReadCloser      // request.Body
