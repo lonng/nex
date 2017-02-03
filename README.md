@@ -69,6 +69,10 @@ func main() {
 	nex.SetErrorEncoder(func(err error) interface{} {
 		return &ErrorMessage{Code: -1, Error: err.Error()}
 	})
+	
+	// global middleware
+	nex.Before(before1, before2)
+	nex.After(after1, after2)
 
 	mux := http.NewServeMux()
 	mux.Handle("/test1", nex.Handler(test1))

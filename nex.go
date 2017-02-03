@@ -38,6 +38,15 @@ func (n *Nex) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err  error
 		resp interface{}
 	)
+	// global before middleware
+	for _, b := range globalBefore {
+		ctx, err = b(ctx, r)
+		if err != nil {
+			fail(w, err)
+			return
+		}
+	}
+
 	// before middleware
 	for _, b := range n.before {
 		ctx, err = b(ctx, r)
@@ -52,6 +61,15 @@ func (n *Nex) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// after middleware
 	for _, a := range n.after {
+		ctx, err = a(ctx, w)
+		if err != nil {
+			fail(w, err)
+			return
+		}
+	}
+
+	// global after middleware
+	for _, a := range globalAfter {
 		ctx, err = a(ctx, w)
 		if err != nil {
 			fail(w, err)
