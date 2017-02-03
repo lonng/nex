@@ -79,6 +79,8 @@ func main() {
 	mux.Handle("/test6", nex.Handler(test6))
 	mux.Handle("/test7", nex.Handler(test7))
 	mux.Handle("/test8", nex.Handler(test8))
+	// add middleware
+	mux.Handle("/test9", nex.Handler(test8).Before(before1, before2).After(after1, after2))
 
 	http.ListenAndServe(":8080", mux)
 }
