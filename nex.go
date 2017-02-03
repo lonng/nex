@@ -1,6 +1,7 @@
 package nex
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"reflect"
@@ -13,7 +14,9 @@ type DefaultErrorMessage struct {
 	Error string `json:"error"`
 }
 
-type handler struct {
+type Nex struct {
+	before  []BeforeFunc
+	after   []AfterFunc
 	adapter HandlerAdapter
 }
 
@@ -28,9 +31,33 @@ func succ(w http.ResponseWriter, data interface{}) {
 	json.NewEncoder(w).Encode(data)
 }
 
-func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (n *Nex) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	resp, err := h.adapter.Invoke(w, r)
+	var (
+		ctx  context.Context = context.Background()
+		err  error
+		resp interface{}
+	)
+	// before middleware
+	for _, b := range n.before {
+		ctx, err = b(ctx, r)
+		if err != nil {
+			fail(w, err)
+			return
+		}
+	}
+
+	// adapter handler
+	resp, err = n.adapter.Invoke(w, r)
+
+	// after middleware
+	for _, a := range n.after {
+		ctx, err = a(ctx, w)
+		if err != nil {
+			fail(w, err)
+			return
+		}
+	}
 	if err != nil {
 		fail(w, err)
 	} else {
@@ -38,7 +65,25 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func Handler(f interface{}) http.Handler {
+func (n *Nex) Before(before ...BeforeFunc) *Nex {
+	for _, b := range before {
+		if b != nil {
+			n.before = append(n.before, b)
+		}
+	}
+	return n
+}
+
+func (n *Nex) After(after ...AfterFunc) *Nex {
+	for _, a := range after {
+		if a != nil {
+			n.after = append(n.after, a)
+		}
+	}
+	return n
+}
+
+func Handler(f interface{}) *Nex {
 	t := reflect.TypeOf(f)
 	if t.Kind() != reflect.Func {
 		panic("invalid parameter")
@@ -59,7 +104,7 @@ func Handler(f interface{}) http.Handler {
 		adapter = makeGenericAdapter(reflect.ValueOf(f))
 	}
 
-	return &handler{adapter}
+	return &Nex{adapter: adapter}
 }
 
 func SetErrorEncoder(c ErrorEncoder) {

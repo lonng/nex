@@ -105,9 +105,8 @@ func BenchmarkGenericAdapter_Invoke(b *testing.B) {
 	}
 }
 
-
 func BenchmarkSimplePlainAdapter_Invoke2(b *testing.B) {
-	handler := &handler{&simplePlainAdapter{reflect.ValueOf(withNone)}}
+	handler := &Nex{adapter: &simplePlainAdapter{reflect.ValueOf(withNone)}}
 	request, err := http.NewRequest(http.MethodGet, "", nil)
 	if err != nil {
 		b.Fatal(err)
@@ -120,9 +119,8 @@ func BenchmarkSimplePlainAdapter_Invoke2(b *testing.B) {
 	}
 }
 
-
 func BenchmarkSimpleUnaryAdapter_Invoke2(b *testing.B) {
-	handler := &handler{&simpleUnaryAdapter{reflect.TypeOf(&testRequest{}), reflect.ValueOf(withReq)}}
+	handler := &Nex{adapter: &simpleUnaryAdapter{reflect.TypeOf(&testRequest{}), reflect.ValueOf(withReq)}}
 	request, err := http.NewRequest(http.MethodGet, "", nil)
 	if err != nil {
 		b.Fatal(err)
@@ -138,7 +136,7 @@ func BenchmarkSimpleUnaryAdapter_Invoke2(b *testing.B) {
 }
 
 func BenchmarkGenericAdapter_Invoke2(b *testing.B) {
-	handler := &handler{makeGenericAdapter(reflect.ValueOf(withMulti))}
+	handler := &Nex{adapter: makeGenericAdapter(reflect.ValueOf(withMulti))}
 	request, err := http.NewRequest(http.MethodGet, "", nil)
 	if err != nil {
 		b.Fatal(err)
