@@ -24,12 +24,16 @@ var supportTypes = map[reflect.Type]valuer{
 
 var maxMemory = int64(2 * 1024 * 1024)
 
-type Form struct {
+type uniform struct {
 	url.Values
 }
 
+type Form struct {
+	uniform
+}
+
 type PostForm struct {
-	url.Values
+	uniform
 }
 
 func bodyValuer(r *http.Request) reflect.Value {
@@ -54,22 +58,22 @@ func multipartValuer(r *http.Request) reflect.Value {
 
 func formValuer(r *http.Request) reflect.Value {
 	r.ParseForm()
-	return reflect.ValueOf(Form{r.Form})
+	return reflect.ValueOf(Form{uniform{r.Form}})
 }
 
 func postFromValuer(r *http.Request) reflect.Value {
 	r.ParseForm()
-	return reflect.ValueOf(PostForm{r.PostForm})
+	return reflect.ValueOf(PostForm{uniform{r.PostForm}})
 }
 
 func formPtrValuer(r *http.Request) reflect.Value {
 	r.ParseForm()
-	return reflect.ValueOf(&Form{r.Form})
+	return reflect.ValueOf(&Form{uniform{r.Form}})
 }
 
 func postFromPtrValuer(r *http.Request) reflect.Value {
 	r.ParseForm()
-	return reflect.ValueOf(&PostForm{r.PostForm})
+	return reflect.ValueOf(&PostForm{uniform{r.PostForm}})
 }
 
 func requestValuer(r *http.Request) reflect.Value {
