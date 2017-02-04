@@ -2,8 +2,6 @@ package nex
 
 import (
 	"strconv"
-	"bytes"
-	"sort"
 )
 
 func (f *uniform) Int(key string) int {
