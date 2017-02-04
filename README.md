@@ -118,6 +118,9 @@ func test5(header http.Header) (*LoginResponse, error) {
 
 func test6(form nex.Form) (*LoginResponse, error) {
 	fmt.Printf("%#v\n", form)
+	// use form helper method
+    // start := query.IntOrDefault("start", 0)
+    // count := query.IntOrDefault("count", -1)
 	return &LoginResponse{Result: "success"}, nil
 }
 
