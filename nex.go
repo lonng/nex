@@ -23,8 +23,8 @@ type Nex struct {
 var errorEncoder ErrorEncoder
 
 func fail(w http.ResponseWriter, err error) {
-	errMsg := errorEncoder(err)
-	json.NewEncoder(w).Encode(errMsg)
+	w.WriteHeader(http.StatusBadRequest)
+	json.NewEncoder(w).Encode(errorEncoder(err))
 }
 
 func succ(w http.ResponseWriter, data interface{}) {
