@@ -69,7 +69,7 @@ func main() {
 	nex.SetErrorEncoder(func(err error) interface{} {
 		return &ErrorMessage{Code: -1, Error: err.Error()}
 	})
-	
+
 	// global middleware
 	nex.Before(before1, before2)
 	nex.After(after1, after2)
@@ -86,41 +86,41 @@ func main() {
 	// add middleware
 	mux.Handle("/test9", nex.Handler(test8).Before(before1, before2).After(after1, after2))
 
-    logic := func(ctx context.Context) (context.Context, *testResponse, error) {
-        println(ctx.Value("key").(string))
-        println(ctx.Value("key2").(string))
-        return context.WithValue(ctx, "logic", "logic-value"), &testResponse{}, nil
-    }
+	logic := func(ctx context.Context) (context.Context, *testResponse, error) {
+		println(ctx.Value("key").(string))
+		println(ctx.Value("key2").(string))
+		return context.WithValue(ctx, "logic", "logic-value"), &testResponse{}, nil
+	}
 
-    before1 := func(ctx context.Context, request *http.Request) (context.Context, error) {
-        return context.WithValue(ctx, "key", "value"), nil
-    }
+	before1 := func(ctx context.Context, request *http.Request) (context.Context, error) {
+		return context.WithValue(ctx, "key", "value"), nil
+	}
 
-    before2 := func(ctx context.Context, request *http.Request) (context.Context, error) {
-        println(ctx.Value("key").(string))
-        return context.WithValue(ctx, "key2", "value2"), nil
-    }
+	before2 := func(ctx context.Context, request *http.Request) (context.Context, error) {
+		println(ctx.Value("key").(string))
+		return context.WithValue(ctx, "key2", "value2"), nil
+	}
 
-    after1 := func(ctx context.Context, w http.ResponseWriter) (context.Context, error) {
-        println(ctx.Value("key").(string))
-        println(ctx.Value("key2").(string))
-        println(ctx.Value("logic").(string))
+	after1 := func(ctx context.Context, w http.ResponseWriter) (context.Context, error) {
+		println(ctx.Value("key").(string))
+		println(ctx.Value("key2").(string))
+		println(ctx.Value("logic").(string))
 
-        return context.WithValue(ctx, "after1", "after1-value"), nil
-    }
+		return context.WithValue(ctx, "after1", "after1-value"), nil
+	}
 
-    after2 := func(ctx context.Context, w http.ResponseWriter) (context.Context, error) {
-        println(ctx.Value("key").(string))
-        println(ctx.Value("key2").(string))
-        println(ctx.Value("logic").(string))
-        println(ctx.Value("after1").(string))
+	after2 := func(ctx context.Context, w http.ResponseWriter) (context.Context, error) {
+		println(ctx.Value("key").(string))
+		println(ctx.Value("key2").(string))
+		println(ctx.Value("logic").(string))
+		println(ctx.Value("after1").(string))
 
-        return context.WithValue(ctx, "key", "value"), nil
-    }
+		return context.WithValue(ctx, "key", "value"), nil
+	}
 
-    handler := Handler(logic).Before(before1, before2).After(after1, after2)
+	handler := Handler(logic).Before(before1, before2).After(after1, after2)
 
-    mux.Handle("/context", handler)
+	mux.Handle("/context", handler)
 
 	http.ListenAndServe(":8080", mux)
 }
@@ -155,8 +155,8 @@ func test5(header http.Header) (*LoginResponse, error) {
 func test6(form nex.Form) (*LoginResponse, error) {
 	fmt.Printf("%#v\n", form)
 	// use form helper method
-    // start := query.IntOrDefault("start", 0)
-    // count := query.IntOrDefault("count", -1)
+	// start := query.IntOrDefault("start", 0)
+	// count := query.IntOrDefault("count", -1)
 	return &LoginResponse{Result: "success"}, nil
 }
 
