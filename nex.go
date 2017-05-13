@@ -57,7 +57,7 @@ func (n *Nex) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// adapter handler
-	resp, err = n.adapter.Invoke(w, r)
+	ctx, resp, err = n.adapter.Invoke(ctx, w, r)
 
 	// after middleware
 	for _, a := range n.after {
@@ -107,19 +107,42 @@ func Handler(f interface{}) *Nex {
 		panic("invalid parameter")
 	}
 
-	if t.NumOut() != 2 {
+	numOut := t.NumOut()
+
+	if numOut != 2 && numOut != 3 {
 		panic("unsupport function type, function return values should contain response data & error")
 	}
 
-	var adapter HandlerAdapter
-	var num = t.NumIn()
+	if numOut == 3 {
+		o0 := t.Out(0)
+		if o0 != contextType {
+			panic("unsupport function type")
+		}
+	}
 
-	if num == 0 {
-		adapter = &simplePlainAdapter{reflect.ValueOf(f)}
-	} else if num == 1 && !isSupportType(t.In(0)) && t.In(0).Kind() == reflect.Ptr {
-		adapter = &simpleUnaryAdapter{t.In(0), reflect.ValueOf(f)}
+	var (
+		adapter    HandlerAdapter
+		numIn      = t.NumIn()
+		outContext = numOut == 3
+		inContext  = false
+	)
+
+	if numIn > 0 {
+		for i := 0; i < numIn; i++ {
+			if t.In(i) == contextType {
+				inContext = true
+			}
+		}
+	}
+
+	if numIn == 0 {
+		adapter = &simplePlainAdapter{false, outContext, reflect.ValueOf(f)}
+	} else if numIn == 1 && inContext {
+		adapter = &simplePlainAdapter{true, outContext, reflect.ValueOf(f)}
+	} else if numIn == 1 && !isSupportType(t.In(0)) && t.In(0).Kind() == reflect.Ptr {
+		adapter = &simpleUnaryAdapter{outContext, t.In(0), reflect.ValueOf(f)}
 	} else {
-		adapter = makeGenericAdapter(reflect.ValueOf(f))
+		adapter = makeGenericAdapter(reflect.ValueOf(f), inContext, outContext)
 	}
 
 	return &Nex{adapter: adapter}

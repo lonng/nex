@@ -6,9 +6,12 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"context"
 )
 
 type valuer func(r *http.Request) reflect.Value
+
+var contextType = reflect.TypeOf((*context.Context)(nil)).Elem()
 
 var supportTypes = map[reflect.Type]valuer{
 	reflect.TypeOf((*io.ReadCloser)(nil)).Elem(): bodyValuer,        // request.Body

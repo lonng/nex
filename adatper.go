@@ -1,46 +1,54 @@
 package nex
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"reflect"
 )
 
 type HandlerAdapter interface {
-	Invoke(http.ResponseWriter, *http.Request) (interface{}, error)
+	Invoke(context.Context, http.ResponseWriter, *http.Request) (context.Context, interface{}, error)
 }
 
 type genericAdapter struct {
-	method reflect.Value
-	numIn  int
-	types  []reflect.Type
+	inContext  bool
+	outContext bool
+	method     reflect.Value
+	numIn      int
+	types      []reflect.Type
 }
 
 // Accept zero parameter adapter
 type simplePlainAdapter struct {
-	method reflect.Value
+	inContext  bool
+	outContext bool
+	method     reflect.Value
 }
 
 // Accept only one parameter adapter
 type simpleUnaryAdapter struct {
-	argType reflect.Type
-	method  reflect.Value
+	outContext bool
+	argType    reflect.Type
+	method     reflect.Value
 }
 
-func makeGenericAdapter(method reflect.Value) *genericAdapter {
+func makeGenericAdapter(method reflect.Value, inContext, outContext bool) *genericAdapter {
 	var noSupportExists = false
 	t := method.Type()
 	numIn := t.NumIn()
 
 	a := &genericAdapter{
-		method: method,
-		numIn:  numIn,
-		types:  make([]reflect.Type, numIn),
+		inContext:  inContext,
+		outContext: outContext,
+		method:     method,
+		numIn:      numIn,
+		types:      make([]reflect.Type, numIn),
 	}
 
 	for i := 0; i < numIn; i++ {
 		in := t.In(i)
-		if !isSupportType(in) {
+		if in != contextType && !isSupportType(in) {
 			if noSupportExists {
 				panic("function should accept only one customize type")
 			}
@@ -56,50 +64,99 @@ func makeGenericAdapter(method reflect.Value) *genericAdapter {
 	return a
 }
 
-func (a *genericAdapter) Invoke(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+func (a *genericAdapter) Invoke(ctx context.Context, w http.ResponseWriter, r *http.Request) (
+	outCtx context.Context, payload interface{}, err error) {
+
+	outCtx = ctx
 	values := make([]reflect.Value, a.numIn)
 	for i := 0; i < a.numIn; i++ {
-		v, ok := supportTypes[a.types[i]]
+		typ := a.types[i]
+		v, ok := supportTypes[typ]
 		if ok {
 			values[i] = v(r)
+		} else if typ == contextType {
+			values[i] = reflect.ValueOf(ctx)
 		} else {
 			d := reflect.New(a.types[i].Elem()).Interface()
-			err := json.NewDecoder(r.Body).Decode(d)
+			err = json.NewDecoder(r.Body).Decode(d)
 			if err != nil {
-				return nil, err
+				return
 			}
 			values[i] = reflect.ValueOf(d)
 		}
 	}
 
 	ret := a.method.Call(values)
-	if err := ret[1].Interface(); err != nil {
-		return nil, err.(error)
+
+	if a.outContext {
+		outCtx = ret[0].Interface().(context.Context)
+		payload = ret[1].Interface()
+		if e := ret[2].Interface(); e != nil {
+			err = e.(error)
+		}
+	} else {
+		payload = ret[0].Interface()
+		if e := ret[1].Interface(); e != nil {
+			err = e.(error)
+		}
 	}
 
-	return ret[0].Interface(), nil
+	return
 }
 
-func (a *simplePlainAdapter) Invoke(w http.ResponseWriter, r *http.Request) (interface{}, error) {
-	ret := a.method.Call([]reflect.Value{})
-	if err := ret[1].Interface(); err != nil {
-		return nil, err.(error)
+func (a *simplePlainAdapter) Invoke(ctx context.Context, w http.ResponseWriter, r *http.Request) (
+	outCtx context.Context, payload interface{}, err error) {
+	var args []reflect.Value
+	outCtx = ctx
+	if a.inContext {
+		args = []reflect.Value{reflect.ValueOf(ctx)}
+	} else {
+		args = []reflect.Value{}
 	}
 
-	return ret[0].Interface(), nil
+	// call it
+	ret := a.method.Call(args)
+
+	if a.outContext {
+		outCtx = ret[0].Interface().(context.Context)
+		payload = ret[1].Interface()
+		if e := ret[2].Interface(); e != nil {
+			err = e.(error)
+		}
+	} else {
+		payload = ret[0].Interface()
+		if e := ret[1].Interface(); e != nil {
+			err = e.(error)
+		}
+	}
+
+	return
 }
 
-func (a *simpleUnaryAdapter) Invoke(w http.ResponseWriter, r *http.Request) (interface{}, error) {
+func (a *simpleUnaryAdapter) Invoke(ctx context.Context, w http.ResponseWriter, r *http.Request) (
+	outCtx context.Context, payload interface{}, err error) {
+
+	outCtx = ctx
 	data := reflect.New(a.argType.Elem()).Interface()
-	err := json.NewDecoder(r.Body).Decode(data)
+	err = json.NewDecoder(r.Body).Decode(data)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	ret := a.method.Call([]reflect.Value{reflect.ValueOf(data)})
-	if err := ret[1].Interface(); err != nil {
-		return nil, err.(error)
+
+	if a.outContext {
+		outCtx = ret[0].Interface().(context.Context)
+		payload = ret[1].Interface()
+		if e := ret[2].Interface(); e != nil {
+			err = e.(error)
+		}
+	} else {
+		payload = ret[0].Interface()
+		if e := ret[1].Interface(); e != nil {
+			err = e.(error)
+		}
 	}
 
-	return ret[0].Interface(), nil
+	return
 }
