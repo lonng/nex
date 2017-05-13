@@ -37,7 +37,7 @@ func test(io.ReadCloser, http.Header, nex.Form, nex.PostForm, *CustomizedRequest
 ```
 
 ## Example
-```
+```go
 package main
 
 import (
@@ -85,6 +85,42 @@ func main() {
 	mux.Handle("/test8", nex.Handler(test8))
 	// add middleware
 	mux.Handle("/test9", nex.Handler(test8).Before(before1, before2).After(after1, after2))
+
+    logic := func(ctx context.Context) (context.Context, *testResponse, error) {
+        println(ctx.Value("key").(string))
+        println(ctx.Value("key2").(string))
+        return context.WithValue(ctx, "logic", "logic-value"), &testResponse{}, nil
+    }
+
+    before1 := func(ctx context.Context, request *http.Request) (context.Context, error) {
+        return context.WithValue(ctx, "key", "value"), nil
+    }
+
+    before2 := func(ctx context.Context, request *http.Request) (context.Context, error) {
+        println(ctx.Value("key").(string))
+        return context.WithValue(ctx, "key2", "value2"), nil
+    }
+
+    after1 := func(ctx context.Context, w http.ResponseWriter) (context.Context, error) {
+        println(ctx.Value("key").(string))
+        println(ctx.Value("key2").(string))
+        println(ctx.Value("logic").(string))
+
+        return context.WithValue(ctx, "after1", "after1-value"), nil
+    }
+
+    after2 := func(ctx context.Context, w http.ResponseWriter) (context.Context, error) {
+        println(ctx.Value("key").(string))
+        println(ctx.Value("key2").(string))
+        println(ctx.Value("logic").(string))
+        println(ctx.Value("after1").(string))
+
+        return context.WithValue(ctx, "key", "value"), nil
+    }
+
+    handler := Handler(logic).Before(before1, before2).After(after1, after2)
+
+    mux.Handle("/context", handler)
 
 	http.ListenAndServe(":8080", mux)
 }
