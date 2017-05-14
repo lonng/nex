@@ -11,13 +11,12 @@ func Handler(f interface{}) *Nex {
 	numOut := t.NumOut()
 
 	if numOut != 2 && numOut != 3 {
-		panic("unsupport function type, function return values should contain response data & error")
+		panic("unsupported function type, function return values should contain response data & error")
 	}
 
 	if numOut == 3 {
-		o0 := t.Out(0)
-		if o0 != contextType {
-			panic("unsupport function type")
+		if t.Out(0) != contextType {
+			panic("unsupported function type")
 		}
 	}
 
