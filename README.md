@@ -4,7 +4,7 @@ This library aims to simplify the construction of JSON API service,
 `http.Handler`, which unmarshals POST data to a struct automatically.
 
 ## Demo
-[中文示例](https://github.com/chrislonng/yue)
+[中文示例](https://github.com/lonnng/yue)
 
 ## Benchmark
 ```
@@ -47,7 +47,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/chrislonng/nex"
+	"github.com/lonnng/nex"
 )
 
 type LoginRequest struct {
