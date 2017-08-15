@@ -7,16 +7,20 @@ import (
 	"reflect"
 )
 
+// HandlerAdapter represents a container that contain a handler function
+// and convert a it to a http.Handler
 type HandlerAdapter interface {
 	Invoke(context.Context, http.ResponseWriter, *http.Request) (context.Context, interface{}, error)
 }
 
+// genericAdapter represents a common adapter
 type genericAdapter struct {
 	inContext  bool
 	outContext bool
 	method     reflect.Value
 	numIn      int
 	types      []reflect.Type
+	cacheArgs  []reflect.Value // cache args
 }
 
 // Accept zero parameter adapter
@@ -24,6 +28,7 @@ type simplePlainAdapter struct {
 	inContext  bool
 	outContext bool
 	method     reflect.Value
+	cacheArgs  []reflect.Value
 }
 
 // Accept only one parameter adapter
@@ -31,6 +36,7 @@ type simpleUnaryAdapter struct {
 	outContext bool
 	argType    reflect.Type
 	method     reflect.Value
+	cacheArgs  []reflect.Value // cache args
 }
 
 func makeGenericAdapter(method reflect.Value, inContext, outContext bool) *genericAdapter {
@@ -44,6 +50,7 @@ func makeGenericAdapter(method reflect.Value, inContext, outContext bool) *gener
 		method:     method,
 		numIn:      numIn,
 		types:      make([]reflect.Type, numIn),
+		cacheArgs:  make([]reflect.Value, numIn),
 	}
 
 	for i := 0; i < numIn; i++ {
@@ -68,7 +75,7 @@ func (a *genericAdapter) Invoke(ctx context.Context, w http.ResponseWriter, r *h
 	outCtx context.Context, payload interface{}, err error) {
 
 	outCtx = ctx
-	values := make([]reflect.Value, a.numIn)
+	values := a.cacheArgs
 	for i := 0; i < a.numIn; i++ {
 		typ := a.types[i]
 		v, ok := supportTypes[typ]
@@ -106,16 +113,13 @@ func (a *genericAdapter) Invoke(ctx context.Context, w http.ResponseWriter, r *h
 
 func (a *simplePlainAdapter) Invoke(ctx context.Context, w http.ResponseWriter, r *http.Request) (
 	outCtx context.Context, payload interface{}, err error) {
-	var args []reflect.Value
 	outCtx = ctx
 	if a.inContext {
-		args = []reflect.Value{reflect.ValueOf(ctx)}
-	} else {
-		args = []reflect.Value{}
+		a.cacheArgs[0] = reflect.ValueOf(ctx)
 	}
 
 	// call it
-	ret := a.method.Call(args)
+	ret := a.method.Call(a.cacheArgs)
 
 	if a.outContext {
 		outCtx = ret[0].Interface().(context.Context)
@@ -143,7 +147,8 @@ func (a *simpleUnaryAdapter) Invoke(ctx context.Context, w http.ResponseWriter, 
 		return
 	}
 
-	ret := a.method.Call([]reflect.Value{reflect.ValueOf(data)})
+	a.cacheArgs[0] = reflect.ValueOf(data)
+	ret := a.method.Call(a.cacheArgs)
 
 	if a.outContext {
 		outCtx = ret[0].Interface().(context.Context)

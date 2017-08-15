@@ -36,11 +36,26 @@ func Handler(f interface{}) *Nex {
 	}
 
 	if numIn == 0 {
-		adapter = &simplePlainAdapter{false, outContext, reflect.ValueOf(f)}
+		adapter = &simplePlainAdapter{
+			inContext:  false,
+			outContext: outContext,
+			method:     reflect.ValueOf(f),
+			cacheArgs:  []reflect.Value{},
+		}
 	} else if numIn == 1 && inContext {
-		adapter = &simplePlainAdapter{true, outContext, reflect.ValueOf(f)}
+		adapter = &simplePlainAdapter{
+			inContext:  true,
+			outContext: outContext,
+			method:     reflect.ValueOf(f),
+			cacheArgs:  make([]reflect.Value, 1),
+		}
 	} else if numIn == 1 && !isSupportType(t.In(0)) && t.In(0).Kind() == reflect.Ptr {
-		adapter = &simpleUnaryAdapter{outContext, t.In(0), reflect.ValueOf(f)}
+		adapter = &simpleUnaryAdapter{
+			outContext: outContext,
+			argType:    t.In(0),
+			method:     reflect.ValueOf(f),
+			cacheArgs:  make([]reflect.Value, 1),
+		}
 	} else {
 		adapter = makeGenericAdapter(reflect.ValueOf(f), inContext, outContext)
 	}
@@ -58,5 +73,3 @@ func SetErrorEncoder(c ErrorEncoder) {
 func SetMultipartFormMaxMemory(m int64) {
 	maxMemory = m
 }
-
-
