@@ -19,10 +19,17 @@ type (
 		Error string `json:"error"`
 	}
 
+	// Nex represents a handler that contains a bundle of hooks
 	Nex struct {
 		before  []BeforeFunc
 		after   []AfterFunc
 		adapter HandlerAdapter
+	}
+
+	// NexGroup represents a handler group that contains same hooks
+	NexGroup struct {
+		before []BeforeFunc
+		after  []AfterFunc
 	}
 )
 
