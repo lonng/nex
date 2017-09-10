@@ -70,6 +70,20 @@ func SetErrorEncoder(c ErrorEncoder) {
 	errorEncoder = c
 }
 
+func SetResponseEncoder(c ResponseEncoder) {
+	if c == nil {
+		panic("nil pointer to error encoder")
+	}
+	responseEncoder = c
+}
+
+func SetStatusCodeEncoder(c StatusCodeEncoder) {
+	if c == nil {
+		panic("nil pointer to error encoder")
+	}
+	statusCodeEncoder = c
+}
+
 func SetMultipartFormMaxMemory(m int64) {
 	maxMemory = m
 }

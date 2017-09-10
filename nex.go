@@ -10,6 +10,9 @@ type (
 	// ErrorEncoder encode error to response body
 	ErrorEncoder func(error) interface{}
 
+	// ResponseEncoder encode payload to response body
+	ResponseEncoder func(payload interface{}) interface{}
+
 	// StatusCodeEncoder encode error to response status code
 	StatusCodeEncoder func(error) int
 
@@ -35,6 +38,7 @@ type (
 
 var (
 	errorEncoder      ErrorEncoder
+	responseEncoder   ResponseEncoder
 	statusCodeEncoder StatusCodeEncoder
 )
 
@@ -44,7 +48,7 @@ func fail(w http.ResponseWriter, err error) {
 }
 
 func succ(w http.ResponseWriter, data interface{}) {
-	json.NewEncoder(w).Encode(data)
+	json.NewEncoder(w).Encode(responseEncoder(data))
 }
 
 func (n *Nex) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -127,6 +131,10 @@ func init() {
 			Code:  -1,
 			Error: err.Error(),
 		}
+	}
+
+	responseEncoder = func(payload interface{}) interface{} {
+		return payload
 	}
 
 	statusCodeEncoder = func(error) int {
