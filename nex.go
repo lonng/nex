@@ -74,6 +74,10 @@ func (n *Nex) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// adapter handler
 	ctx, resp, err = n.adapter.Invoke(ctx, w, r)
+	if err != nil {
+		fail(w, err)
+		return
+	}
 
 	// after middleware
 	for _, a := range n.after {
