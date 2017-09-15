@@ -85,9 +85,8 @@ func (a *genericAdapter) Invoke(ctx context.Context, w http.ResponseWriter, r *h
 			values[i] = reflect.ValueOf(ctx)
 		} else {
 			d := reflect.New(a.types[i].Elem()).Interface()
-			err = json.NewDecoder(r.Body).Decode(d)
-			if err != nil {
-				return
+			if err = json.NewDecoder(r.Body).Decode(d); err != nil {
+				panic(err)
 			}
 			values[i] = reflect.ValueOf(d)
 		}
@@ -142,9 +141,8 @@ func (a *simpleUnaryAdapter) Invoke(ctx context.Context, w http.ResponseWriter, 
 
 	outCtx = ctx
 	data := reflect.New(a.argType.Elem()).Interface()
-	err = json.NewDecoder(r.Body).Decode(data)
-	if err != nil {
-		return
+	if err = json.NewDecoder(r.Body).Decode(data); err != nil {
+		panic(err)
 	}
 
 	a.cacheArgs[0] = reflect.ValueOf(data)
